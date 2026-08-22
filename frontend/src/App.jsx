@@ -8,6 +8,9 @@ import { transliterate } from "transliteration";
 import Fuse from "fuse.js";
 
 const STORAGE_KEY = "episode";
+const TIME_KEY_PREFIX = "episode-time-";
+const RESUME_REWIND_SECONDS = 5;
+const SAVE_THROTTLE_MS = 5000;
 
 function App() {
 
@@ -27,6 +30,9 @@ function App() {
   const playerRef = useRef(null);
   const listContainerRef = useRef(null);
   const hasStartedRef = useRef(false);
+  const resumeAppliedRef = useRef(false);
+  const currentIdRef = useRef(null);
+  const lastSavedAtRef = useRef(0);
 
   useEffect(() => {
     if (window.location.pathname !== "/") {
@@ -61,10 +67,49 @@ function App() {
     setAudioLoading(true);
     setIsBuffering(false);
     hasStartedRef.current = false;
+    resumeAppliedRef.current = false;
 
     const audioEl = playerRef.current?.audio?.current;
     if (audioEl) audioEl.setAttribute("controlsList", "nodownload");
   }, [currentId]);
+
+  useEffect(() => {
+    currentIdRef.current = currentId;
+  }, [currentId]);
+
+  const flushCurrentTime = useCallback(() => {
+    const audioEl = playerRef.current?.audio?.current;
+    if (audioEl && currentIdRef.current !== null) {
+      lastSavedAtRef.current = Date.now();
+      localStorage.setItem(TIME_KEY_PREFIX + currentIdRef.current, String(audioEl.currentTime));
+    }
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener("pagehide", flushCurrentTime);
+    return () => {
+      window.removeEventListener("pagehide", flushCurrentTime);
+      flushCurrentTime();
+    };
+  }, [flushCurrentTime]);
+
+  const saveTimeThrottled = useCallback((id, time) => {
+    const now = Date.now();
+    if (now - lastSavedAtRef.current < SAVE_THROTTLE_MS) return;
+    lastSavedAtRef.current = now;
+    localStorage.setItem(TIME_KEY_PREFIX + id, String(time));
+  }, []);
+
+  const resumeFromSavedTime = useCallback((id, audioEl) => {
+    if (resumeAppliedRef.current) return;
+    resumeAppliedRef.current = true;
+    lastSavedAtRef.current = Date.now();
+
+    const saved = parseFloat(localStorage.getItem(TIME_KEY_PREFIX + id));
+    if (!isNaN(saved) && saved > 0) {
+      audioEl.currentTime = Math.max(0, saved - RESUME_REWIND_SECONDS);
+    }
+  }, []);
 
   const isNumericSearch = search.trim().length > 0 && /^\d+$/.test(search.trim());
 
@@ -134,10 +179,11 @@ function App() {
   const playURL = currentEpisode?.url || "";
 
   const selectEpisode = useCallback((id) => {
+    flushCurrentTime();
     setCurrentId(id);
     setMobileView("player");
     localStorage.setItem(STORAGE_KEY, id);
-  }, []);
+  }, [flushCurrentTime]);
 
   const handleSearchKeyDown = (e) => {
     if (e.key !== "Enter" || jumpTargetId === null) return;
@@ -365,6 +411,10 @@ function App() {
                   onClickNext={() => goToOffset(1)}
                   onEnded={() => goToOffset(1)}
                   onCanPlay={() => setAudioLoading(false)}
+                  onLoadedMetaData={(e) => resumeFromSavedTime(currentId, e.target)}
+                  onListen={(e) => saveTimeThrottled(currentId, e.target.currentTime)}
+                  listenInterval={1000}
+                  onPause={flushCurrentTime}
                   onPlaying={() => {
                     setAudioLoading(false);
                     setIsBuffering(false);
