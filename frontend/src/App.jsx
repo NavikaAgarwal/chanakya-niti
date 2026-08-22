@@ -13,7 +13,6 @@ const RESUME_REWIND_SECONDS = 5;
 const SAVE_THROTTLE_MS = 5000;
 
 function App() {
-
   const [episodes, setEpisodes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
@@ -25,6 +24,9 @@ function App() {
   const [isBuffering, setIsBuffering] = useState(false);
   const [isCurrentRowVisible, setIsCurrentRowVisible] = useState(true);
   const [nowPlayingDirection, setNowPlayingDirection] = useState("down");
+  const [sleepTimerEnd, setSleepTimerEnd] = useState(null);
+  const [sleepMenuOpen, setSleepMenuOpen] = useState(false);
+  const [customMinutes, setCustomMinutes] = useState("");
 
   const rowRefs = useRef(new Map());
   const playerRef = useRef(null);
@@ -33,6 +35,8 @@ function App() {
   const resumeAppliedRef = useRef(false);
   const currentIdRef = useRef(null);
   const lastSavedAtRef = useRef(0);
+  const sleepTimeoutRef = useRef(null);
+  const sleepMenuRef = useRef(null);
 
   useEffect(() => {
     if (window.location.pathname !== "/") {
@@ -99,6 +103,54 @@ function App() {
     lastSavedAtRef.current = now;
     localStorage.setItem(TIME_KEY_PREFIX + id, String(time));
   }, []);
+
+  useEffect(() => {
+    clearTimeout(sleepTimeoutRef.current);
+    if (sleepTimerEnd === null) return;
+
+    const msLeft = sleepTimerEnd - Date.now();
+    if (msLeft <= 0) {
+      setSleepTimerEnd(null);
+      return;
+    }
+
+    sleepTimeoutRef.current = setTimeout(() => {
+      const audioEl = playerRef.current?.audio?.current;
+      if (audioEl) audioEl.pause();
+      setSleepTimerEnd(null);
+    }, msLeft);
+
+    return () => clearTimeout(sleepTimeoutRef.current);
+  }, [sleepTimerEnd]);
+
+  useEffect(() => {
+    if (!sleepMenuOpen) return;
+
+    const handleClickOutside = (e) => {
+      if (sleepMenuRef.current && !sleepMenuRef.current.contains(e.target)) {
+        setSleepMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [sleepMenuOpen]);
+
+  const startSleepTimer = useCallback((minutes) => {
+    if (!minutes || minutes <= 0) return;
+    setSleepTimerEnd(Date.now() + minutes * 60 * 1000);
+    setSleepMenuOpen(false);
+    setCustomMinutes("");
+  }, []);
+
+  const cancelSleepTimer = useCallback(() => {
+    setSleepTimerEnd(null);
+    setSleepMenuOpen(false);
+  }, []);
+
+  const sleepMinutesLeft = sleepTimerEnd !== null
+    ? Math.max(1, Math.ceil((sleepTimerEnd - Date.now()) / 60000))
+    : null;
 
   const resumeFromSavedTime = useCallback((id, audioEl) => {
     if (resumeAppliedRef.current) return;
@@ -251,6 +303,82 @@ function App() {
   return (
     <div className="flex flex-col md:flex-row h-dvh bg-[#f4eecb] dark:bg-gray-900">
       <Toaster />
+
+      <div ref={sleepMenuRef} className="fixed top-3 right-3 z-30">
+        <button
+          onClick={() => setSleepMenuOpen((open) => !open)}
+          title={sleepTimerEnd !== null ? `Sleep timer: ~${sleepMinutesLeft} min left` : "Set sleep timer"}
+          className={
+            "relative inline-flex items-center justify-center w-9 h-9 rounded-full border shadow-sm transition " +
+            (sleepTimerEnd !== null
+              ? "border-[#bfae64] bg-[#bfae64] text-white"
+              : "border-[#bfae64] bg-[#ece2b6] dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-[#f4eacb] dark:hover:bg-gray-700")
+          }
+        >
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 7v5l3 3" />
+          </svg>
+          {sleepTimerEnd !== null && (
+            <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-red-500 border border-white dark:border-gray-900" />
+          )}
+        </button>
+
+        {sleepMenuOpen && (
+          <div className="absolute right-0 mt-2 w-56 rounded-lg border border-[#d8cf9e] dark:border-gray-700 bg-[#ece2b6] dark:bg-gray-800 shadow-lg p-3 flex flex-col gap-2">
+            {sleepTimerEnd !== null ? (
+              <>
+                <p className="text-sm text-gray-700 dark:text-gray-200">
+                  Pausing in ~{sleepMinutesLeft} min
+                </p>
+                <button
+                  onClick={cancelSleepTimer}
+                  className="w-full text-sm px-3 py-1.5 rounded-md border border-[#bfae64] text-gray-700 dark:text-gray-200 hover:bg-[#f4eacb] dark:hover:bg-gray-700 transition"
+                >
+                  Cancel timer
+                </button>
+              </>
+            ) : (
+              <>
+                <p className="text-xs font-medium text-gray-600 dark:text-gray-400">Sleep timer</p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => startSleepTimer(15)}
+                    className="flex-1 text-sm px-2 py-1.5 rounded-md border border-[#bfae64] text-gray-700 dark:text-gray-200 hover:bg-[#f4eacb] dark:hover:bg-gray-700 transition"
+                  >
+                    15 min
+                  </button>
+                  <button
+                    onClick={() => startSleepTimer(30)}
+                    className="flex-1 text-sm px-2 py-1.5 rounded-md border border-[#bfae64] text-gray-700 dark:text-gray-200 hover:bg-[#f4eacb] dark:hover:bg-gray-700 transition"
+                  >
+                    30 min
+                  </button>
+                </div>
+                <div className="flex gap-2">
+                  <input
+                    type="number"
+                    min="1"
+                    value={customMinutes}
+                    onChange={(e) => setCustomMinutes(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") startSleepTimer(parseInt(customMinutes));
+                    }}
+                    placeholder="Custom min"
+                    className="flex-1 min-w-0 rounded-md py-1.5 px-2 text-sm bg-white/60 dark:bg-white/10 border border-gray-300 dark:border-white/10 dark:text-white focus:outline-none focus:border-[#bfae64]"
+                  />
+                  <button
+                    onClick={() => startSleepTimer(parseInt(customMinutes))}
+                    className="text-sm px-3 py-1.5 rounded-md border border-[#bfae64] text-gray-700 dark:text-gray-200 hover:bg-[#f4eacb] dark:hover:bg-gray-700 transition"
+                  >
+                    Set
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+      </div>
 
       <aside
         className={
