@@ -533,7 +533,22 @@ function App() {
                   src={playURL}
                   autoPlayAfterSrcChange
                   showSkipControls
-                  showJumpControls={false}
+                  showJumpControls
+                  progressJumpStep={10000}
+                  customIcons={{
+                    rewind: (
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M9 15L4 10L9 5" />
+                        <path d="M4 10H14a6 6 0 0 1 0 12h-1" />
+                      </svg>
+                    ),
+                    forward: (
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M15 15L20 10L15 5" />
+                        <path d="M20 10H10a6 6 0 0 0 0 12h1" />
+                      </svg>
+                    ),
+                  }}
                   hasDefaultKeyBindings={false}
                   onClickPrevious={() => goToOffset(-1)}
                   onClickNext={() => goToOffset(1)}
