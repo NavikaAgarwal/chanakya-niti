@@ -15,7 +15,7 @@
   }
 
   body {
-    @apply font-normal text-black;
+    @apply font-normal text-black dark:text-white;
   }
 
   img {
@@ -23,7 +23,7 @@
   }
 
   .input-box {
-    @apply w-full rounded-md py-2.5 px-4 bg-[#FFFFFF56] pl-12 border border-gray-200 placeholder:text-black focus:outline-none focus:border-[#bfae64] focus:ring-2 focus:ring-[#bfae64];
+    @apply w-full rounded-md py-2.5 px-4 bg-[#FFFFFF56] dark:bg-white/10 pl-12 border border-gray-200 dark:border-white/10 placeholder:text-black dark:placeholder:text-gray-400 dark:text-white focus:outline-none focus:border-[#bfae64] focus:ring-2 focus:ring-[#bfae64];
   }
 
   .input-icon {
@@ -51,6 +51,24 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #DFDFB0;
   border-radius: 12px;
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #111827;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #1f2937;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #4b5563;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #6b7280;
+  }
 }
 
 .niti-player.rhap_container {
@@ -137,4 +155,25 @@ body {
 .niti-player .rhap_progress-container:focus,
 .niti-player .rhap_volume-bar-area:focus {
   outline: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  .niti-player .rhap_time {
+    color: #d1d5db;
+  }
+
+  .niti-player .rhap_progress-bar,
+  .niti-player .rhap_volume-bar {
+    background-color: #374151;
+  }
+
+  .niti-player .rhap_download-progress {
+    background-color: #4b5563;
+  }
+
+  .niti-player .rhap_main-controls-button,
+  .niti-player .rhap_volume-button,
+  .niti-player .rhap_repeat-button {
+    color: #d1d5db;
+  }
 }

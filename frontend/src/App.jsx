@@ -203,24 +203,24 @@ function App() {
   }, [goToOffset]);
 
   return (
-    <div className="flex flex-col md:flex-row h-dvh bg-[#f4eecb]">
+    <div className="flex flex-col md:flex-row h-dvh bg-[#f4eecb] dark:bg-gray-900">
       <Toaster />
 
       <aside
         className={
           (mobileView === "list" ? "flex flex-1 min-h-0" : "hidden") +
-          " md:flex md:flex-none w-full md:w-[320px] shrink-0 flex-col border-r border-[#d8cf9e] bg-[#ece2b6]"
+          " md:flex md:flex-none w-full md:w-[320px] shrink-0 flex-col border-r border-[#d8cf9e] dark:border-gray-700 bg-[#ece2b6] dark:bg-gray-800"
         }
       >
-        <div className="sticky top-0 z-10 bg-[#ece2b6]">
-          <div className="px-4 pt-4 pb-3 border-b border-[#d8cf9e]">
+        <div className="sticky top-0 z-10 bg-[#ece2b6] dark:bg-gray-800">
+          <div className="px-4 pt-4 pb-3 border-b border-[#d8cf9e] dark:border-gray-700">
             <div className="flex items-center gap-2">
               <img src="logo.webp" alt="Chanakya Niti logo" className="w-8 h-8" />
-              <span className="text-xl font-bold">चाणक्य नीति</span>
+              <span className="text-xl font-bold dark:text-white">चाणक्य नीति</span>
             </div>
           </div>
 
-          <div className="px-4 py-3 border-b border-[#d8cf9e]">
+          <div className="px-4 py-3 border-b border-[#d8cf9e] dark:border-gray-700">
             <div className="relative">
               <input
                 type="text"
@@ -231,7 +231,7 @@ function App() {
                 className="input-box text-sm"
               />
               <svg
-                className="input-icon w-4 h-4 text-gray-500"
+                className="input-icon w-4 h-4 text-gray-500 dark:text-gray-400"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -248,18 +248,18 @@ function App() {
         <div className="relative flex-1 min-h-0 overflow-hidden">
           <div ref={listContainerRef} className="h-full overflow-y-auto">
             {loading && (
-              <div className="flex items-center justify-center gap-2 p-6 text-sm text-gray-600">
-                <span className="w-4 h-4 border-2 border-gray-400 border-t-[#bfae64] rounded-full animate-spin" />
+              <div className="flex items-center justify-center gap-2 p-6 text-sm text-gray-600 dark:text-gray-400">
+                <span className="w-4 h-4 border-2 border-gray-400 dark:border-gray-600 border-t-[#bfae64] rounded-full animate-spin" />
                 Loading episodes...
               </div>
             )}
 
             {loadError && (
-              <p className="p-4 text-sm text-red-600">{loadError}</p>
+              <p className="p-4 text-sm text-red-600 dark:text-red-400">{loadError}</p>
             )}
 
             {!loading && !loadError && filteredEpisodes.length === 0 && (
-              <p className="p-4 text-sm text-gray-600">No episodes match your search.</p>
+              <p className="p-4 text-sm text-gray-600 dark:text-gray-400">No episodes match your search.</p>
             )}
 
             {filteredEpisodes.map((ep) => (
@@ -271,12 +271,12 @@ function App() {
                 }}
                 onClick={() => selectEpisode(ep.id)}
                 className={
-                  "w-full flex items-center gap-3 px-4 py-2.5 text-left text-sm border-b border-[#e4dbae] hover:bg-[#dfd6a3] transition " +
-                  (ep.id === currentId ? "bg-[#d8cf9e] font-semibold" : "") +
+                  "w-full flex items-center gap-3 px-4 py-2.5 text-left text-sm border-b border-[#e4dbae] dark:border-gray-700 hover:bg-[#dfd6a3] dark:hover:bg-gray-700 dark:text-white transition " +
+                  (ep.id === currentId ? "bg-[#d8cf9e] dark:bg-gray-700 font-semibold" : "") +
                   (ep.id === jumpTargetId ? " ring-2 ring-inset ring-[#bfae64]" : "")
                 }
               >
-                <span className="text-gray-500 tabular-nums w-8 shrink-0">
+                <span className="text-gray-500 dark:text-gray-400 tabular-nums w-8 shrink-0">
                   {String(ep.id).padStart(2, "0")}
                 </span>
                 <span className="truncate">{ep.title}</span>
@@ -287,7 +287,7 @@ function App() {
           {currentId !== null && !search.trim() && !isCurrentRowVisible && (
             <button
               onClick={jumpToNowPlaying}
-              className="absolute bottom-4 right-4 z-10 inline-flex items-center gap-1.5 px-3 py-2 rounded-full border border-[#bfae64] bg-[#ece2b6] text-sm font-medium text-gray-800 shadow-md hover:bg-[#f4eacb] transition"
+              className="absolute bottom-4 right-4 z-10 inline-flex items-center gap-1.5 px-3 py-2 rounded-full border border-[#bfae64] bg-[#ece2b6] dark:bg-gray-800 text-sm font-medium text-gray-800 dark:text-gray-200 shadow-md hover:bg-[#f4eacb] dark:hover:bg-gray-700 transition"
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z" />
@@ -316,7 +316,7 @@ function App() {
 
         <button
           onClick={() => setMobileView("list")}
-          className="md:hidden self-start inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#bfae64] text-sm text-gray-700 hover:bg-[#f4eacb] transition"
+          className="md:hidden self-start inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#bfae64] text-sm text-gray-700 dark:text-gray-300 hover:bg-[#f4eacb] dark:hover:bg-gray-800 transition"
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
             <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" />
@@ -335,20 +335,20 @@ function App() {
 
           {currentEpisode ? (
             <div className="w-full max-w-xl flex flex-col gap-4">
-              <p className="text-center text-xl font-semibold text-gray-800">
+              <p className="text-center text-xl font-semibold text-gray-800 dark:text-gray-100">
                 Ep {currentEpisode.id} · {currentEpisode.title}
               </p>
 
               <div className="relative w-full">
                 {audioLoading && (
-                  <div className="flex items-center justify-center gap-2 py-4 text-sm text-gray-600">
-                    <span className="w-4 h-4 border-2 border-gray-400 border-t-[#bfae64] rounded-full animate-spin" />
+                  <div className="flex items-center justify-center gap-2 py-4 text-sm text-gray-600 dark:text-gray-400">
+                    <span className="w-4 h-4 border-2 border-gray-400 dark:border-gray-600 border-t-[#bfae64] rounded-full animate-spin" />
                     Loading audio...
                   </div>
                 )}
 
                 {isBuffering && !audioLoading && (
-                  <div className="absolute top-1 right-1 z-10 flex items-center gap-1.5 px-2 py-1 rounded-full bg-[#ece2b6] text-xs text-gray-600 shadow">
+                  <div className="absolute top-1 right-1 z-10 flex items-center gap-1.5 px-2 py-1 rounded-full bg-[#ece2b6] dark:bg-gray-800 text-xs text-gray-600 dark:text-gray-400 shadow">
                     <span className="w-3 h-3 border-2 border-gray-400 border-t-[#bfae64] rounded-full animate-spin" />
                     Buffering...
                   </div>
@@ -382,7 +382,7 @@ function App() {
               </div>
             </div>
           ) : (
-            <p className="text-lg text-gray-600">
+            <p className="text-lg text-gray-600 dark:text-gray-400">
               Select an episode from the list to begin listening.
             </p>
           )}
